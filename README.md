@@ -1,4 +1,4 @@
-# Simple Q/A bot using LangChain.
+# LLM Q/A bot using LangChain.
 
 ## Setup
 
