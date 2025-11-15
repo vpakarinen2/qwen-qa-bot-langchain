@@ -19,3 +19,16 @@
 1. **Run the Python script**
 
 - ``python qwen_qa_bot.py``
+
+## CLI arguments
+
+### Options
+
+- `-q`, `--question`  
+  - Description: The question to ask the model.
+
+- `-m`, `--model-name`  
+  - Description: Hugging Face model id (e.g. Qwen/Qwen3-4B-Thinking-2507).
+
+- `--trust-remote-code`
+  - Description: Allow execution of custom remote code.
