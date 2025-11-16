@@ -10,17 +10,14 @@ from langchain.llms.base import LLM
 from pydantic.v1 import Field
 
 
-class QwenLocalLLM(LLM):
+class LocalLLM(LLM):
     """LangChain LLM wrapper."""
-
-    # Pydantic fields
     tokenizer: Any = Field(default=None, exclude=True)
     model: Any = Field(default=None, exclude=True)
     trust_remote_code: bool = False
     device: str = "cpu"
 
     class Config:
-        # Allow HF model/tokenizer
         arbitrary_types_allowed = True
 
     def __init__(
@@ -30,14 +27,13 @@ class QwenLocalLLM(LLM):
         trust_remote_code: bool = False,
         **kwargs,
     ):
-        # Initialize BaseModel
+        
         super().__init__(**kwargs)
 
         self.device = device if device else ("cuda" if torch.cuda.is_available() else "cpu")
         self.trust_remote_code = trust_remote_code
-
-        # Load tokenizer and model
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=self.trust_remote_code)
+        
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
             dtype=torch.float16,
@@ -59,7 +55,6 @@ class QwenLocalLLM(LLM):
             eos_token_id=self.tokenizer.eos_token_id,
         )
 
-        # Only decode new generated tokens
         gen_only = output_ids[0][inputs["input_ids"].shape[-1]:]
         text = self.tokenizer.decode(gen_only, skip_special_tokens=True).strip()
 
@@ -110,7 +105,7 @@ def parse_args() -> argparse.Namespace:
 
 def main():
     args = parse_args()
-    llm = QwenLocalLLM(model_name=args.model_name, trust_remote_code=args.trust_remote_code)
+    llm = LocalLLM(model_name=args.model_name, trust_remote_code=args.trust_remote_code)
 
     prompt_template = """You are a helpful assistant.
 
