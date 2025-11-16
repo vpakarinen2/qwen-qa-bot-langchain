@@ -1,4 +1,4 @@
-# Q/A bot using LangChain.
+# Simple command-line Q/A bot.
 
 ## Setup
 
