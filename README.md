@@ -29,6 +29,9 @@
 
 - `-m`, `--model-name`  
   - Description: Hugging Face model id (e.g. Qwen/Qwen3-4B-Thinking-2507).
+ 
+- `-l`, `--lora-name`  
+  - Description: Optional LoRA adapter to apply on top of the base model.
 
 - `--trust-remote-code`
   - Description: Allow execution of custom remote code.
