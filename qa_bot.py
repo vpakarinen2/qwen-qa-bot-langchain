@@ -1,4 +1,4 @@
-"""Simple Q/A Bot using LangChain."""
+"""Simple Q/A Bot using LangChain with optional LoRA adapter."""
 
 import argparse
 import torch
@@ -8,14 +8,17 @@ from langchain.prompts import PromptTemplate
 from typing import Optional, List, Any
 from langchain.llms.base import LLM
 from pydantic.v1 import Field
+from peft import PeftModel
 
 
 class LocalLLM(LLM):
     """LangChain LLM wrapper."""
+
     tokenizer: Any = Field(default=None, exclude=True)
     model: Any = Field(default=None, exclude=True)
     trust_remote_code: bool = False
     device: str = "cpu"
+    lora_name: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -25,20 +28,34 @@ class LocalLLM(LLM):
         model_name: str = "Qwen/Qwen3-4B-Thinking-2507",
         device: Optional[str] = None,
         trust_remote_code: bool = False,
+        lora_name: Optional[str] = None,
         **kwargs,
     ):
-        
         super().__init__(**kwargs)
 
         self.device = device if device else ("cuda" if torch.cuda.is_available() else "cpu")
         self.trust_remote_code = trust_remote_code
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=self.trust_remote_code)
-        
-        self.model = AutoModelForCausalLM.from_pretrained(
+        self.lora_name = lora_name
+
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name,
+            trust_remote_code=self.trust_remote_code,
+        )
+
+        base_model = AutoModelForCausalLM.from_pretrained(
             model_name,
             dtype=torch.float16,
-            trust_remote_code=self.trust_remote_code
+            trust_remote_code=self.trust_remote_code,
         ).to(self.device)
+
+        if self.lora_name:
+            print(f"Loading LoRA adapter: {self.lora_name}")
+            self.model = PeftModel.from_pretrained(
+                base_model,
+                self.lora_name,
+            ).to(self.device)
+        else:
+            self.model = base_model
 
     @property
     def _llm_type(self) -> str:
@@ -77,8 +94,9 @@ class LocalLLM(LLM):
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(
-        description="Simple Q/A Bot using LangChain."
+        description="Simple Q/A Bot using LangChain with a local HF model (optional LoRA)."
     )
+
     parser.add_argument(
         "-q",
         "--question",
@@ -87,25 +105,42 @@ def parse_args() -> argparse.Namespace:
         default="What is the currency of Japan?",
         help="Question to ask the model.",
     )
+
     parser.add_argument(
         "-m",
         "--model-name",
         type=str,
         required=False,
         default="Qwen/Qwen3-4B-Thinking-2507",
-        help="Hugging Face model id to load (e.g. Qwen/Qwen3-4B-Thinking-2507).",
+        help="Hugging Face base model id to load (e.g. Qwen/Qwen3-4B-Thinking-2507).",
     )
+
+    parser.add_argument(
+        "-l",
+        "--lora-name",
+        type=str,
+        required=False,
+        default=None,
+        help="Optional LoRA adapter to apply on top of the base model.",
+    )
+
     parser.add_argument(
         "--trust-remote-code",
         action="store_true",
         help="Allow execution of custom remote code.",
     )
+
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    llm = LocalLLM(model_name=args.model_name, trust_remote_code=args.trust_remote_code)
+
+    llm = LocalLLM(
+        model_name=args.model_name,
+        trust_remote_code=args.trust_remote_code,
+        lora_name=args.lora_name,
+    )
 
     prompt_template = """You are a helpful assistant.
 
@@ -121,7 +156,8 @@ Answer:"""
     question = args.question
     answer = qa_chain.invoke({"question": question})
 
-    print(f"Model:   {args.model_name}")
+    print(f"Model:    {args.model_name}")
+    print(f"LoRA:     {args.lora_name}")
     print(f"Question: {question}")
     print(f"Answer:   {answer}")
 
