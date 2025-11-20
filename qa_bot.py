@@ -67,9 +67,11 @@ class LocalLLM(LLM):
 
         output_ids = self.model.generate(
             **inputs,
-            max_new_tokens=64,
-            do_sample=False,
+            max_new_tokens=256,
+            do_sample=True,
             eos_token_id=self.tokenizer.eos_token_id,
+            temperature=0.6,
+            top_p=0.95,
         )
 
         gen_only = output_ids[0][inputs["input_ids"].shape[-1]:]
