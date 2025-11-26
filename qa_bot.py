@@ -13,7 +13,6 @@ from peft import PeftModel
 
 class LocalLLM(LLM):
     """LangChain LLM wrapper."""
-
     tokenizer: Any = Field(default=None, exclude=True)
     model: Any = Field(default=None, exclude=True)
     trust_remote_code: bool = False
@@ -166,3 +165,4 @@ Answer:"""
 
 if __name__ == "__main__":
     main()
+
