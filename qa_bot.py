@@ -95,7 +95,7 @@ class LocalLLM(LLM):
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(
-        description="Simple Q/A Bot using LangChain with a local HF model (optional LoRA)."
+        description="Q/A Bot using LangChain with local HF model (optional LoRA)."
     )
 
     parser.add_argument(
@@ -165,5 +165,6 @@ Answer:"""
 
 if __name__ == "__main__":
     main()
+
 
 
