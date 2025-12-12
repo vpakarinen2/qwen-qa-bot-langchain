@@ -4,20 +4,27 @@ import argparse
 import torch
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from langchain.prompts import PromptTemplate
 from typing import Optional, List, Any
-from langchain.llms.base import LLM
 from pydantic.v1 import Field
 from peft import PeftModel
+
+from langchain.prompts import PromptTemplate
+from langchain.llms.base import LLM
+from langchain.tools import Tool
+
+from math_tool import evaluate_math_expression
+from time_tool import get_current_time
 
 
 class LocalLLM(LLM):
     """LangChain LLM wrapper."""
+
     tokenizer: Any = Field(default=None, exclude=True)
     model: Any = Field(default=None, exclude=True)
     trust_remote_code: bool = False
     device: str = "cpu"
     lora_name: Optional[str] = None
+    for_agent: bool = False
 
     class Config:
         arbitrary_types_allowed = True
@@ -76,6 +83,9 @@ class LocalLLM(LLM):
         gen_only = output_ids[0][inputs["input_ids"].shape[-1]:]
         text = self.tokenizer.decode(gen_only, skip_special_tokens=True).strip()
 
+        if self.for_agent:
+            return text
+
         if "Answer:" in text:
             text = text.split("Answer:", 1)[1].strip()
 
@@ -126,6 +136,28 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-t",
+        "--tool",
+        type=str,
+        choices=["math", "time"],
+        required=False,
+        default=None,
+        help="Optional tool to use (currently: math, time).",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--city",
+        type=str,
+        required=False,
+        default="Helsinki",
+        help=(
+            "City for time tool (default: Helsinki). "
+            "Examples: Moscow, Ottawa, Washington D.C., Beijing, Brasilia, Canberra."
+        ),
+    )
+
+    parser.add_argument(
         "--trust-remote-code",
         action="store_true",
         help="Allow execution of custom remote code.",
@@ -136,6 +168,49 @@ def parse_args() -> argparse.Namespace:
 
 def main():
     args = parse_args()
+
+    if args.tool == "math":
+        question = args.question
+
+        expr = "".join(
+            ch for ch in question if ch.isdigit() or ch in "+-*/(). "
+        ).strip() or question
+
+        math_langchain_tool = Tool(
+            name="math",
+            func=evaluate_math_expression,
+            description=(
+                "Safely evaluate basic arithmetic expressions with +, -, *, and /. "
+                "Input should be a string like '2 + 2' or '3 * (4 - 1)'."
+            ),
+        )
+
+        try:
+            result = math_langchain_tool.run(expr)
+        except Exception as exc:
+            print(f"Tool error: {exc}")
+            return
+
+        print("Tool:     math")
+        print(f"Input:    {question}")
+        if expr != question:
+            print(f"Expr:     {expr}")
+        print(f"Result:   {result}")
+        return
+
+    if args.tool == "time":
+        city_input = args.city
+
+        try:
+            time_str, display_city = get_current_time(city_input)
+        except Exception as exc:
+            print(f"Tool error: {exc}")
+            return
+
+        print("Tool:     time")
+        print(f"City:     {display_city}")
+        print(f"Now:      {time_str}")
+        return
 
     llm = LocalLLM(
         model_name=args.model_name,
@@ -165,6 +240,3 @@ Answer:"""
 
 if __name__ == "__main__":
     main()
-
-
-
