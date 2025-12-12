@@ -32,6 +32,12 @@
  
 - `-l`, `--lora-name`  
   - Description: Optional LoRA adapter to apply on top of the base model.
+ 
+- `-t`, `--tool`  
+  - Description: Optional tool to use (currently: math, time).
+ 
+- `-c`, `--city`  
+  - Description: City for time tool (default: Helsinki).
 
 - `--trust-remote-code`
   - Description: Allow execution of custom remote code.
