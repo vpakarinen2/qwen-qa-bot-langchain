@@ -201,8 +201,17 @@ def main():
     if args.tool == "time":
         city_input = args.city
 
+        time_langchain_tool = Tool(
+            name="time",
+            func=get_current_time,
+            description=(
+                "Return current local time (default is Helsinki). "
+                "Moscow, Ottawa, Washington D.C., Beijing, Brasilia, and Canberra."
+            ),
+        )
+
         try:
-            time_str, display_city = get_current_time(city_input)
+            time_str, display_city = time_langchain_tool.run(city_input)
         except Exception as exc:
             print(f"Tool error: {exc}")
             return
