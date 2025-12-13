@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 
+from langchain.tools import tool
+
 
 _CITY_OFFSETS: Dict[str, int] = {
     "helsinki": 2,       
@@ -36,3 +38,10 @@ def get_current_time(city: str) -> str:
         display_city = "Helsinki"
 
     return local_dt.strftime("%Y-%m-%d %H:%M:%S"), display_city
+
+
+@tool
+def time(city: str) -> str:
+    """Get the current local time."""
+    current_time, display_city = get_current_time(city)
+    return f"{display_city}: {current_time}"
