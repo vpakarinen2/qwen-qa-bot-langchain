@@ -151,7 +151,7 @@ def parse_args() -> argparse.Namespace:
         required=False,
         default="Helsinki",
         help=(
-            "City for time tool (default: Helsinki). "
+            "City for time tool (default: Helsinki)."
             "Examples: Moscow, Ottawa, Washington D.C., Beijing, Brasilia, Canberra."
         ),
     )
@@ -230,3 +230,4 @@ Answer:"""
 
 if __name__ == "__main__":
     main()
+
