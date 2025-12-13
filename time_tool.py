@@ -22,7 +22,7 @@ def _normalize_city_name(city: str) -> str:
 
 
 def get_current_time(city: str) -> str:
-    """Return the current local time string for the given city."""
+    """Return the current local time."""
     norm = _normalize_city_name(city or "")
 
     if norm not in _CITY_OFFSETS:
@@ -45,3 +45,4 @@ def time(city: str) -> str:
     """Get the current local time."""
     current_time, display_city = get_current_time(city)
     return f"{display_city}: {current_time}"
+
