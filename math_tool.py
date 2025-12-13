@@ -1,6 +1,7 @@
 import operator
 import ast
 
+from langchain.tools import tool
 from typing import Union
 
 
@@ -37,3 +38,10 @@ def evaluate_math_expression(expression: str) -> Union[int, float]:
         raise ValueError(f"Invalid expression: {expression}") from exc
     result = _eval_node(parsed)
     return result
+
+
+@tool
+def math(expression: str) -> str:
+    """Evaluate basic math expressions."""
+    result = evaluate_math_expression(expression)
+    return str(result)
