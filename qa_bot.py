@@ -10,10 +10,9 @@ from peft import PeftModel
 
 from langchain.prompts import PromptTemplate
 from langchain.llms.base import LLM
-from langchain.tools import Tool
 
-from math_tool import evaluate_math_expression
-from time_tool import get_current_time
+from math_tool import math
+from time_tool import time
 
 
 class LocalLLM(LLM):
@@ -176,49 +175,31 @@ def main():
             ch for ch in question if ch.isdigit() or ch in "+-*/(). "
         ).strip() or question
 
-        math_langchain_tool = Tool(
-            name="math",
-            func=evaluate_math_expression,
-            description=(
-                "Safely evaluate basic arithmetic expressions with +, -, *, and /. "
-                "Input should be a string like '2 + 2' or '3 * (4 - 1)'."
-            ),
-        )
+        print(f"\nRunning tool 'math' with input: {question}\n")
 
         try:
-            result = math_langchain_tool.run(expr)
+            result = math.invoke(expr)
         except Exception as exc:
             print(f"Tool error: {exc}")
             return
 
-        print("Tool:     math")
-        print(f"Input:    {question}")
-        if expr != question:
-            print(f"Expr:     {expr}")
-        print(f"Result:   {result}")
+        print("Tool output:")
+        print(result)
         return
 
     if args.tool == "time":
         city_input = args.city
 
-        time_langchain_tool = Tool(
-            name="time",
-            func=get_current_time,
-            description=(
-                "Return current local time (default is Helsinki). "
-                "Moscow, Ottawa, Washington D.C., Beijing, Brasilia, and Canberra."
-            ),
-        )
+        print(f"\nRunning tool 'time' for city: {city_input}\n")
 
         try:
-            time_str, display_city = time_langchain_tool.run(city_input)
+            result = time.invoke(city_input)
         except Exception as exc:
             print(f"Tool error: {exc}")
             return
 
-        print("Tool:     time")
-        print(f"City:     {display_city}")
-        print(f"Now:      {time_str}")
+        print("Tool output:")
+        print(result)
         return
 
     llm = LocalLLM(
