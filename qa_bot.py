@@ -11,8 +11,8 @@ from peft import PeftModel
 from langchain.prompts import PromptTemplate
 from langchain.llms.base import LLM
 
-from math_tool import math
-from time_tool import time
+from tools.math_tool import math
+from tools.time_tool import time
 
 
 class LocalLLM(LLM):
