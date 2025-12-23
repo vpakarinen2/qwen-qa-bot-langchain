@@ -42,6 +42,15 @@
 - `--trust-remote-code`
   - Description: Allow execution of custom remote code.
 
+ ## Example Output
+
+ ```
+  Model:    Qwen/Qwen3-4B-Thinking-2507
+  LoRA:     None
+  Question: A bat and ball cost 1.10 USD total. The bat costs 1 USD more than the ball. How much does the ball cost?
+  Answer:   The ball costs 5 cents.
+```
+
 ## Author
 
 Ville Pakarinen (@vpakarinen2)
