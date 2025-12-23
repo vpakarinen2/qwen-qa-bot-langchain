@@ -38,6 +38,15 @@
  
 - `-c`, `--city`  
   - Description: City for time tool (default: Helsinki).
+ 
+- `-p`, `--prompt-style`  
+  - Description: Prompt template style to use.
+ 
+- `-n`, `--max-new-tokens`  
+  - Description: Maximum number of new tokens to generate.
+ 
+- `-r`, `--raw-output`  
+  - Description: Print raw model output (disables trimming).
 
 - `--trust-remote-code`
   - Description: Allow execution of custom remote code.
