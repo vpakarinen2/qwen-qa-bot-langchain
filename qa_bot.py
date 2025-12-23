@@ -21,9 +21,10 @@ class LocalLLM(LLM):
     tokenizer: Any = Field(default=None, exclude=True)
     model: Any = Field(default=None, exclude=True)
     trust_remote_code: bool = False
-    device: str = "cpu"
     lora_name: Optional[str] = None
+    max_new_tokens: int = 512
     for_agent: bool = False
+    device: str = "cpu"
 
     class Config:
         arbitrary_types_allowed = True
@@ -72,10 +73,10 @@ class LocalLLM(LLM):
 
         output_ids = self.model.generate(
             **inputs,
-            max_new_tokens=256,
+            max_new_tokens=self.max_new_tokens,
             do_sample=True,
             eos_token_id=self.tokenizer.eos_token_id,
-            temperature=0.6,
+            temperature=0.7,
             top_p=0.95,
         )
 
@@ -157,6 +158,32 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-p",
+        "--prompt-style",
+        type=str,
+        choices=["alpaca", "simple"],
+        required=False,
+        default="alpaca",
+        help="Prompt template style to use.",
+    )
+
+    parser.add_argument(
+        "-n",
+        "--max-new-tokens",
+        type=int,
+        required=False,
+        default=512,
+        help="Maximum number of new tokens to generate.",
+    )
+
+    parser.add_argument(
+        "-r",
+        "--raw-output",
+        action="store_true",
+        help="Print raw model output (disables trimming).",
+    )
+
+    parser.add_argument(
         "--trust-remote-code",
         action="store_true",
         help="Allow execution of custom remote code.",
@@ -206,11 +233,23 @@ def main():
         model_name=args.model_name,
         trust_remote_code=args.trust_remote_code,
         lora_name=args.lora_name,
+        for_agent=args.raw_output,
+        max_new_tokens=args.max_new_tokens,
     )
 
-    prompt_template = """You are a helpful assistant.
+    if args.prompt_style == "alpaca":
+        prompt_template = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
-Answer the user's question with one short sentence.
+### Instruction:
+Answer the question.
+
+### Input:
+{question}
+
+### Response:
+"""
+    else:
+        prompt_template = """You are a helpful assistant.
 
 Question: {question}
 
@@ -230,4 +269,3 @@ Answer:"""
 
 if __name__ == "__main__":
     main()
-
