@@ -1,4 +1,4 @@
-# Command-line question-answering (Q/A) bot.
+# CLI question-answering (Q/A) bot.
 
 ## Setup
 
